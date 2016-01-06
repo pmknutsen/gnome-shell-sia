@@ -1,6 +1,6 @@
 ##Sia Cloud Storage Extension for GNOME Shell - BETA VERSION
 
-The Sia Cloud Storage extension integrates Sia directly into your GNOME desktop. The extension automatically synchronizes files in your *Sia* folder (`~/Sia`) with the Sia cloud. Files are re-uploaded if their expire, or their file-sizes change. The extension can also automatically start the Sia daemon if it is found in your path.
+The Sia Cloud Storage extension integrates Sia directly into your GNOME desktop. The extension automatically synchronizes files in a local folder (`~/Sia`) with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible.
 
 ###What is Sia?
 Sia is a blockchain-based decentralized cloud storage platform that allows users all over the world to contribute available storage space from their computers to form a decentralized network. Using Sia, you can rent storage from hosts on the network. This is accomplished via "smart" storage contracts stored on the Sia blockchain. Hosts are paid for storing files, oce the host has kept a file for an agreed amount of time.
@@ -8,7 +8,7 @@ Sia is a blockchain-based decentralized cloud storage platform that allows users
 Siacoins is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoin on an exchange.
 
 ###Install
-The extension should be installed in your `~/.local/share/gnome-shell/extensions` directory.
+Install the extension by downloading all files into `~/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com`. Restart the GNOME shell with `Alt+F2` and `r`.
 
 ###Features
 
@@ -16,26 +16,26 @@ The extension should be installed in your `~/.local/share/gnome-shell/extensions
 * Automatic synchronization of the ~/Sia folder (recursive)
 * Send Siacoins
 * Create address to receive funds
-* Auto-start of Sia daemon
+* Auto-start Sia daemon (requires `siad` to be found in path)
 * Sync and upload statistics
 
 ###Troubleshooting
-*My files are not being upload to the cloud*
+**My files are not uploaded to the cloud**
 
-Your wallet needs to be unlocked and funded in order for Sia to form new storage contracts with hosts. Restrictive firewalls may also prevent Sia from connecting to the cloud. If that is not the case and synchronzation has indeed stopped, try restarting the Sia daemon (`siad`).
+Your wallet needs to be unlocked and funded in order for Sia to form new storage contracts with hosts. Restrictive firewalls may also prevent Sia from connecting to the cloud. If that is not the case and synchronization has indeed halted, try restarting the Sia daemon (`siac stop`).
 
-*What are Siacoins and how to get them?*
+**What are Siacoins and how to get them?**
 
-Siacoins is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoins with bitcoins on an exchange, such as [Poloniex](http://poloniex.com). You can also request a small amount of free Siacoins from a faucet, such as [SiaPulse.com](http://siapulse.com/page/faucet).
+Siacoins is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoins with bitcoins on an exchange, such as [Poloniex](http://poloniex.com). You can also request a small amount of free Siacoins from the faucet at [SiaPulse.com](http://siapulse.com/page/faucet).
 
-*Sia does not automatically start*
+**Sia does not automatically start**
 
 To enable auto-start of the Sia daemon, the program `siad` needs to be in your path. Create a symbolic link to siad:
 `sudo ln -s /path/to/siad /usr/bin/siad`
 
-*The extension does not run*
+**The extension does not run**
 
-The extension may not be compatible with your version of GNOME. Please contact the developer with details of your distribution and GNOME version and support may be added at a later time.
+The extension may not be compatible with your version of GNOME. Please file an issue with details of your distribution and GNOME version and support may be added at a later time.
 
 
 ###License
