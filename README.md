@@ -13,6 +13,7 @@ Install the extension by downloading all files into `~/.local/share/gnome-shell/
 ###Features
 
 ![Sia GNOME Extension](screenshot.png)
+![Sia GNOME Extension](screenshot-2.png)
 
 * Unlock/lock wallet
 * View Siacoin balance and pending transfers
