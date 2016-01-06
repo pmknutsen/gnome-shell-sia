@@ -12,10 +12,13 @@ Install the extension by downloading all files into `~/.local/share/gnome-shell/
 
 ###Features
 
+![Sia GNOME Extension](screenshot.png)
+
+* Unlock/lock wallet
 * View Siacoin balance and pending transfers
-* Automatic synchronization of the ~/Sia folder (recursive)
 * Send Siacoins
 * Create address to receive funds
+* Recursive synchronization of local folder (`~/Sia`)
 * Auto-start Sia daemon (requires `siad` to be found in path)
 * Sync and upload statistics
 
