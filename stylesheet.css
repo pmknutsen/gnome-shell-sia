@@ -1,0 +1,28 @@
+.sia-icon {
+    background-image: url("sia.svg");
+    background-size: 30px;
+    height: 30px;
+    width: 30px;
+}
+
+.menu-item {
+    font-weight: bold;
+    width: 200px;
+}
+
+.menu-subitem {
+    font-size: 90%;
+}
+.menu-subitem2 {
+    font-size: 80%;
+    padding-left: 10px;
+}
+.prompt-dialog {
+    width: 450px;
+}
+.prompt-dialog-message-layout {
+    width: 430px;
+}
+.prompt-dialog-amount-layout {
+    width: 10px;
+}
