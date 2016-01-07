@@ -53,7 +53,7 @@ To enable auto-start of the Sia daemon, the program `siad` needs to be in your p
 
 The extension may not be compatible with your version of GNOME. Please file an issue with details of your distribution and GNOME version and support may be added at a later time.
 
-**"Where are old version of my files?"**
+**"Where are old versions of my files?"**
 
 See **Versioning**.
 
