@@ -15,29 +15,19 @@ const PasswordDialog = new Lang.Class({
     this.parent({ styleClass: 'prompt-dialog' });
 
     // Main box which we'll put all widgets in
-    let mainContentBox = new St.BoxLayout({ style_class: 'prompt-dialog-main-layout',
-                                            vertical: false });
-    this.contentLayout.add(mainContentBox,
-                           { x_fill: true,
-                             y_fill: false });
+    let mainContentBox = new St.BoxLayout({ style_class: 'prompt-dialog-main-layout', vertical: false });
+    this.contentLayout.add(mainContentBox, { x_fill: true, y_fill: false });
 
     // Sets a message box
-    let messageBox = new St.BoxLayout({ style_class: 'prompt-dialog-message-layout',
-                                        vertical: true });
-    mainContentBox.add(messageBox,
-                       { y_align: St.Align.START });
+    let messageBox = new St.BoxLayout({ style_class: 'prompt-dialog-message-layout', vertical: true });
+    mainContentBox.add(messageBox, { y_align: St.Align.START });
 
     // Puts a text on the box, asking for a password
-    let subjectLabel = new St.Label({ style_class: 'prompt-dialog-headline',
-                                        text: "Type in your Sia wallet password:"});
-    messageBox.add(subjectLabel,
-                   { y_fill:  false,
-                     y_align: St.Align.START });
+    let subjectLabel = new St.Label({ style_class: 'prompt-dialog-headline', text: "Type in your Sia wallet password:"});
+    messageBox.add(subjectLabel, { y_fill:  false, y_align: St.Align.START });
     
     // An entry for putting the password
-    this._passwdEntry = new St.Entry({ style_class: 'prompt-dialog-password-entry',
-                                      text: "", can_focus: true,
-                                      reactive: true });
+    this._passwdEntry = new St.Entry({ style_class: 'prompt-dialog-password-entry', text: "", can_focus: true, reactive: true });
 
     ShellEntry.addContextMenu(this._passwdEntry, { isPassword: true });
     
@@ -69,7 +59,6 @@ const PasswordDialog = new Lang.Class({
 
     /* Give entry field focus DOES NOT WORK */
     global.stage.set_key_focus(this._passwdEntry);
-
   },
 
   set_callback: function(callback) {
@@ -81,29 +70,29 @@ const PasswordDialog = new Lang.Class({
   },
 
   get_password_entry: function() {
-      return this._passwdEntry.get_text();
+    return this._passwdEntry.get_text();
   },
       
   _updateOkButton: function() {
-      let passwd = this.get_password_entry();
-      
-      this._okButton.button.reactive = true; // changes from valid to true
-      this._okButton.button.can_focus = true;
-      
-      if (passwd.length != 0)
-          this._okButton.button.remove_style_pseudo_class('disabled');
-      else
-          this._okButton.button.add_style_pseudo_class('disabled');
+    let passwd = this.get_password_entry();
+    
+    this._okButton.button.reactive = true; // changes from valid to true
+    this._okButton.button.can_focus = true;
+    
+    if (passwd.length != 0)
+        this._okButton.button.remove_style_pseudo_class('disabled');
+    else
+        this._okButton.button.add_style_pseudo_class('disabled');
   },
   
   _onOk: function() {
-      let passwd = this.get_password_entry();
-      this.close(global.get_current_time());
-      this._callback(passwd);
+    let passwd = this.get_password_entry();
+    this.close(global.get_current_time());
+    this._callback(passwd);
   },
   
   cancel: function() {
-      this.close(global.get_current_time());
-      this._callback(null);
+    this.close(global.get_current_time());
+    this._callback(null);
   },
 });

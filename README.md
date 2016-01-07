@@ -7,20 +7,34 @@ Sia is a blockchain-based decentralized cloud storage platform that allows users
 
 Siacoins is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoin on an exchange.
 
-###Install
-Install the extension by downloading all files into `~/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com`. Restart the GNOME shell with `Alt+F2` and `r`.
-
 ###Features
 
-![Sia GNOME Extension](screenshot-2.png)   ![Sia GNOME Extension](screenshot.png)
+![Sia GNOME Extension](./img/screenshot-2.png)   ![Sia GNOME Extension](./img/screenshot.png)
 
+* Recursive synchronization of local folder (`~/Sia`)
+* File versioning
 * Unlock/lock wallet
 * View Siacoin balance and pending transfers
 * Send Siacoins
 * Create address to receive funds
-* Recursive synchronization of local folder (`~/Sia`)
 * Auto-start Sia daemon (requires `siad` to be found in path)
 * Sync and upload statistics
+
+###Install
+Install the extension by downloading all files into `~/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com`, and then restart the GNOME shell with `Alt+F2` and `r`.
+
+```
+# Clone the Git repository
+git clone https://github.com/pmknutsen/gnome-shell-sia ~/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com
+```
+
+###Versioning
+Files that change locally are re-uploaded to the Sia cloud. The old versions of changed files are downloaded as hidden `.sia`
+files into the local sync folder, and then removed from the Sia renter. Thus, old versions are no longer available through
+the graphical wallet, but can be restored using the hidden `.sia` files. The version of the file in the renter is therefore
+always the latest version. Note that users you have shared your file with cannot access the latest version, unless you re-share
+the new Sia sharing code with them. They can, however, continue to access the old version you shared with them until the file
+storage contract of that version expires.
 
 ###Troubleshooting
 **My files are not uploaded to the cloud**

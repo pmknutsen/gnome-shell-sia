@@ -64,7 +64,6 @@ const InputDialog = new Lang.Class({
                        action: Lang.bind(this, this.cancel),
                        key:    Clutter.KEY_Escape,
                      }, this._okButton]);
-        
   },
 
   set_callback: function(callback) {

@@ -32,5 +32,4 @@ if test -d $WALLETDIR;
 	else exit 0;
 fi
 
-# We should never get here
 exit 0;
