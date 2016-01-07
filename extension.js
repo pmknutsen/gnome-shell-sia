@@ -25,7 +25,7 @@ In order to autostart Sia, create a symbolic link to siad in your path:
 
 Troubleshooting:
   To view log messages in a terminal, replace gnome-shell with:
-    gnome-shell --replace --display=:1.0 &
+    gnome-shell --replace --display=:0.0 &
 
 */
 
@@ -110,12 +110,10 @@ const Sia = new Lang.Class({
     getWalletLockStatus();
 
     /* Create the ~/Sia directory */
-    Util.spawn(['mkdir', '-p', siadir]);
+    createSiaDir();
 
     /* Auto-start siad if not already running */
     this._startSiad();
-
-    this._setFileFolderIcon(siadir, 'icon.png');
   },
 
   _startSiad : function() {
@@ -166,17 +164,6 @@ const Sia = new Lang.Class({
     item.connect('activate', Lang.bind(this, method));
     parent.menu.addMenuItem(item);
   },
-
-  /**
-   * Set the icon on a file or folder
-   * @param {[type]} name   Path of file or folder relative to home directory
-   * @param {[type]} icon   Icon name
-   */
-  _setFileFolderIcon : function(name, icon) {
-    let icondir = 'file://' + homedir + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/' + icon;
-    Util.spawn(['gvfs-set-attribute', name, 'metadata::custom-icon', icondir]);
-  },
-
   /* Display wallet authentication dialog */
   _getWalletPass : function() {
     getJSON('GET', '/wallet', null, function(code, json) {
@@ -247,6 +234,14 @@ function pauseSync() {
     siaMonitor._pausesync.label.text = 'Pause Syncing';
   }
   return true;
+}
+
+/* Create the ~/Sia sync folder */
+function createSiaDir() {
+  Util.spawn(['mkdir', '-p', siadir]);
+  let icondir = 'file://' + homedir + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/icon.png';
+  showNotification('sia', icondir);
+  Util.spawn(['gvfs-set-attribute', siadir, '-t', 'string', 'metadata::custom-icon', icondir]);
 }
 
 /* Send Siacoins */
@@ -495,6 +490,9 @@ function getWalletLockStatus() {
 
 /* Run timer functions */
 function timerExec() {
+  /* Make sure ~/Sia exists */
+  createSiaDir();
+
   /* Update block counter */
   updateBlockCounter();
 
