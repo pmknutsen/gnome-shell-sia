@@ -7,10 +7,9 @@ Sia is a blockchain-based decentralized cloud storage platform that allows users
 
 Siacoins is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoin on an exchange.
 
-###Features
-
 ![Sia GNOME Extension](./img/screenshot-2.png)   ![Sia GNOME Extension](./img/screenshot.png)
 
+###Features
 * Recursive synchronization of local folder (`~/Sia`)
 * File versioning
 * Unlock/lock wallet
@@ -21,11 +20,11 @@ Siacoins is the Sia network’s own currency, and is used to fund storage contra
 * Sync and upload statistics
 
 ###Install
-Install the extension by downloading all files into `~/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com`, and then restart the GNOME shell with `Alt+F2` and `r`.
+Install the extension by downloading all files into `~/.local/share/gnome-shell/extensions/sia@pmknutsen.github.com`, and then restart the GNOME shell with `Alt+F2` and `r`.
 
 ```
 # Clone the Git repository
-git clone https://github.com/pmknutsen/gnome-shell-sia ~/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com
+git clone https://github.com/pmknutsen/gnome-shell-sia ~/.local/share/gnome-shell/extensions/sia@pmknutsen.github.com
 ```
 
 ###Versioning

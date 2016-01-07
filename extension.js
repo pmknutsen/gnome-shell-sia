@@ -33,7 +33,7 @@ const PanelMenu   = imports.ui.panelMenu;
 const PopupMenu   = imports.ui.popupMenu;
 const Panel       = imports.ui.panel;
 
-const GETTEXT_DOMAIN = 'gnome-shell-extension-siacloudstorage';
+const GETTEXT_DOMAIN = 'gnome-shell-extension-sia';
 const Gettext        = imports.gettext.domain(GETTEXT_DOMAIN);
 const _              = Gettext.gettext;
 
@@ -120,7 +120,7 @@ const Sia = new Lang.Class({
           showNotification('Sia not found on this system. Start siad manually, or add siad to your path.');
         } else {
           /* Run autostart.sh to start siad */
-          let shpath = HOMEDIR + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/autostart.sh';
+          let shpath = HOMEDIR + '/.local/share/gnome-shell/extensions/sia@pmknutsen.github.com/autostart.sh';
           Util.spawn(['chmod', '+x', shpath]);
           Util.spawn([shpath]);
           showNotification('Starting Sia daemon...');
@@ -233,7 +233,7 @@ function createSiaDir() {
 
 /* Get path to Sia icon */
 function getIconPath() {
-  let icon = 'file://' + HOMEDIR + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/img/icon.png';
+  let icon = 'file://' + HOMEDIR + '/.local/share/gnome-shell/extensions/sia@pmknutsen.github.com/img/icon.png';
   return icon;  
 }
 
