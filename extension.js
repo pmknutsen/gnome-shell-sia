@@ -6,22 +6,19 @@ TODOs
   Show balances in USD (optional)
   Notify: Files that expire soon
   Notify: New file downloads (if synchronizing automatically)
-  Add translations
   Test and extend compatibility with more recent Gnome
   Announce host
   Host statistics (see new 0.5.0 API documentation)
   Download .sia files placed in Sia folder
   Trash folder: Remove files locally and from renter (i.e. don't renew)
   Menu item to download Sia ASCII
+  Upload if file-size has changed
 
 Documentation:
   http://codeisland.org/2013/making-gnome-shell-extensions/
   http://www.roojs.com/seed/gir-1.2-gtk-3.0/gjs/index.html
   http://mathematicalcoffee.blogspot.com.es/2012/09/gnome-shell-javascript-source.html
   https://wiki.gnome.org/Projects/GnomeShell/Extensions/StepByStepTutorial#knowingGnomeShell-API
-
-In order to autostart Sia, create a symbolic link to siad in your path:
-  ln -s /path/to/siad /usr/bin/siad
 
 Troubleshooting:
   To view log messages in a terminal, replace gnome-shell with:
@@ -59,17 +56,20 @@ const Clipboard      = St.Clipboard.get_default();
 const CLIPBOARD_TYPE = St.ClipboardType.CLIPBOARD;
 
 /* Global variables */
-let text, button, siaMonitor;
-let homedir        = GLib.get_home_dir();
-let siadir         = 'Sia';
-let fileSyncLimit  = 20; // max # files to sync at a given time
-let syncPause      = false;
-let walletUnlocked = false;
-let currentBlock   = 0;
-let timerInterval  = 10; // seconds
+let siaMonitor;
+
+const HOMEDIR            = GLib.get_home_dir();
+const SIADIR             = 'Sia';
+const TIMER_INTERVAL     = 10;  // update interval, sec
+const FILE_SYNC_LIMIT    = 20;  // max # files to sync each cycle
+const SYNC_RECURSION_LIM = 100; // Sync recursion limit, folders
+
+let syncPause        = false;
+let walletUnlocked   = false;
+let currentBlock     = 0;
 
 /* Start sync timer */
-let timeoutID = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, timerInterval, timerExec);
+let timeoutID = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, TIMER_INTERVAL, timerExec);
 
 /* Start Soup session (used by getJSON) */
 const HTTP_TOO_MANY_REQUESTS = 429;
@@ -123,13 +123,13 @@ const Sia = new Lang.Class({
         /* Start siad */
         let path = GLib.find_program_in_path('siad');
         if (path === null) {
-          showNotification('Sia', 'Sia not found on this system. Start siad manually, or add siad to your path.');
+          showNotification('Sia not found on this system. Start siad manually, or add siad to your path.');
         } else {
           /* Run autostart.sh to start siad */
-          let shpath = homedir + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/autostart.sh';
+          let shpath = HOMEDIR + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/autostart.sh';
           Util.spawn(['chmod', '+x', shpath]);
           Util.spawn([shpath]);
-          showNotification('Sia', 'Starting Sia daemon...');
+          showNotification('Starting Sia daemon...');
        }
       }
     });
@@ -164,6 +164,7 @@ const Sia = new Lang.Class({
     item.connect('activate', Lang.bind(this, method));
     parent.menu.addMenuItem(item);
   },
+
   /* Display wallet authentication dialog */
   _getWalletPass : function() {
     getJSON('GET', '/wallet', null, function(code, json) {
@@ -177,12 +178,14 @@ const Sia = new Lang.Class({
       }
     });
   },
+
   /* Send Siacoins */
   _sendSiacoins : function() {
     let sendDialog = new _sendDialog.InputDialog;
     sendDialog.set_callback(sendSiacoins);
     sendDialog.open(global.get_current_time());
   },
+
   /* Receive Siacoins */
   _receiveSiacoins : function() {
     /* Get new address */
@@ -190,24 +193,28 @@ const Sia = new Lang.Class({
       let result = JSON.parse(json);
       /* Copy address to clipboard */
       Clipboard.set_text(CLIPBOARD_TYPE, result.address);
-      showNotification('Sia', 'Siacoin address copied to clipboard');
+      showNotification('Siacoin address copied to clipboard');
     });
   },
+
   /* Open synchronization folder */
   _openSyncFolder : function() {
-    Util.spawn(['nautilus', 'Sia']);
+    Util.spawn(['nautilus', SIADIR]);
   },
+
   /* Update wallet balance */
   _updateBalance : function() {
     getJSON('GET', '/wallet', null, updateWalletBalance);
   },
+
   /* Update settings */
   _remoteDel : function() {
-    showNotification('Sia', 'Remote delete selected');
+    showNotification('Remote delete selected');
   },
+
   /* Update settings */
   _remoteSync : function() {
-    showNotification('Sia', 'Remote sync selected');
+    showNotification('Remote sync selected');
   },
 });
 
@@ -238,36 +245,37 @@ function pauseSync() {
 
 /* Create the ~/Sia sync folder */
 function createSiaDir() {
-  Util.spawn(['mkdir', '-p', siadir]);
-  let icondir = 'file://' + homedir + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/icon.png';
-  Util.spawn(['gvfs-set-attribute', siadir, '-t', 'string', 'metadata::custom-icon', icondir]);
+  Util.spawn(['mkdir', '-p', SIADIR]);
+  let icon = 'file://' + HOMEDIR + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/icon.png';
+  Util.spawn(['gvfs-set-attribute', SIADIR, '-t', 'string', 'metadata::custom-icon', icon]);
 }
 
 /* Send Siacoins */
 function sendSiacoins(address, siacoins) {
   /* Validate address */
   if (!isAddress(address)) {
-    showNotification('Sia', 'Invalid address.');
+    showNotification('Invalid address.');
     return;
   }
 
   /* Validate address */
   if (siacoins <= 0) {
-    showNotification('Sia', 'Invalid amount.');
+    showNotification('Invalid amount.');
     return;
   }
 
   /* Convert Siacoins to hastings */
   let hastings = convertHastings(siacoins);
 
+  /* Send Siacoins */
   getJSON('POST', '/wallet/siacoins', 'amount=' + siacoins + '&destination=' + address, function(code, json) {
     let result = JSON.parse(json);
     if ('transactionids' in result) {
       /* Copy transaction ID to clipboard */
       Clipboard.set_text(CLIPBOARD_TYPE, result.transactionids[0]);
-      showNotification('Sia', 'Sent ' + siacoins + ' SC. Transaction ID copied to clipboard.');
+      showNotification('Sent ' + siacoins + ' SC. Transaction ID copied to clipboard.');
     } else {
-      showNotification('Sia', 'Failed to send funds!');
+      showNotification('Failed to send funds!');
     }
   });
 }
@@ -286,10 +294,8 @@ function convertHastings(siacoins) {
   return number.times(ConversionFactor).toFixed(0);
 }
 
-
 /* Address has to be lowercase hex and 76 chars */
 function isAddress(str) {
-  let str;
   return str.match(/^[a-f0-9]{76}$/) !== null;
 }
 
@@ -304,8 +310,6 @@ function isAddress(str) {
   Hidden files (w/dot prefix) are ignored.
 */
 
-/* Sync recursion limit (direction) */
-let syncRecursionLim = 4;
 let syncLevel = 0;
 
 /* Synchronize the Sia folder */
@@ -317,14 +321,13 @@ function syncSiaFolder() {
   getJSON('GET', '/renter/files/list', null, function(code, json) {
     let renter = JSON.parse(json);
     if (renter === null) return;
-    let siaPath = homedir + '/' + siadir;
 
     /* Start sync */
     syncLevel = 0;
     if (!syncPause) {
-      let fcount = syncFolder(siaPath, renter, 0);
+      let fcount = syncFolder(HOMEDIR + '/' + SIADIR, renter, 0);
       if (fcount > 0) {
-        showNotification('Sia', 'Uploaded ' + fcount + ' files');
+        showNotification('Uploaded ' + fcount + ' files');
       }
     }
 
@@ -334,8 +337,8 @@ function syncSiaFolder() {
 /* Sync a specific folder - function calls itself recursively */
 function syncFolder(path, renter, fcount) {
   syncLevel += 1;
-  if (syncLevel > syncRecursionLim) {
-    showNotification('Sia', 'Reached directory recursion limit (' + syncRecursionLim + ').');
+  if (syncLevel > SYNC_RECURSION_LIM) {
+    showNotification('Reached directory recursion limit (' + SYNC_RECURSION_LIM + ').');
     return;
   }
 
@@ -359,8 +362,7 @@ function syncFolder(path, renter, fcount) {
   let d;
   for (d = 0; d < dirs.length; d++) {
     fcount = syncFolder(path + '/' + dirs[d].get_name() , renter, fcount);
-    //showNotification('Sia', 'sync ' + path + '/' + dirs[d].get_name());
-    if (fcount == fileSyncLimit) break;
+    if (fcount == FILE_SYNC_LIMIT) break;
   }
 
   return fcount;
@@ -378,7 +380,7 @@ function syncFiles(path, files, renter, fcount) {
     let nickname = siaPath;
 
     /* Remove root path and leading slash from nickname */
-    nickname = nickname.replace(homedir + '/' + siadir + '/', '');
+    nickname = nickname.replace(HOMEDIR + '/' + SIADIR + '/', '');
 
     /* Substitute forward slash with double underscore
        TODO Update when 0.5.0 is out
@@ -387,29 +389,26 @@ function syncFiles(path, files, renter, fcount) {
 
     /* Compare file with files in renter
        Skip files that are already in the renter
-       TODO Upload still if *file size* is different
     */
     for (r = 0; r < renter.length; r++) {
       if ( nickname.localeCompare(renter[r].Nickname) === 0 ) {
         if ( renter[r].TimeRemaining > 0 || renter[r].UploadProgress < 100 ) {
           upload = false;
+
           /* Update file icon emblems/overlays */
-          /* Available == true: emblem-default */
           if (renter[r].Available) {
             Util.spawn(['gvfs-set-attribute', siaPath, '-t', 'stringv', 'metadata::emblems', 'emblem-default']);
           }
-          /* UploadProgress < 100: view-refresh */
           if (renter[r].UploadProgress < 100) {
             Util.spawn(['gvfs-set-attribute', siaPath, '-t', 'stringv', 'metadata::emblems', 'view-refresh']);
           }
-          /* UploadProgress == 100: emblem-favorite */
           if (renter[r].UploadProgress > 50) {
             Util.spawn(['gvfs-set-attribute', siaPath, '-t', 'stringv', 'metadata::emblems', 'emblem-favorite']);
           }
-          /* TimeRemaining < 300 (~2 days): emblem-important */
           if (renter[r].TimeRemaining > 0 && renter[r].TimeRemaining < 300 ) {
             Util.spawn(['gvfs-set-attribute', siaPath, '-t', 'stringv', 'metadata::emblems', 'emblem-important']);
           }
+          
         }
         break;
       }
@@ -422,7 +421,7 @@ function syncFiles(path, files, renter, fcount) {
     }
 
     /* Limit number of files synced this cycle (remaining files are picked up next cycle) */
-    if (fcount == fileSyncLimit) break;
+    if (fcount == FILE_SYNC_LIMIT) break;
   }
   return fcount;
 }
@@ -457,7 +456,7 @@ function isDirectory(file) {
 function checkNewUpload(code, json) {
   let result = JSON.parse(json);
   if (result === null)
-    showNotification('Sia', 'File upload failed.');
+    showNotification('File upload failed.');
 };
 
 /* Unlock wallet */
@@ -526,7 +525,7 @@ function updateWalletLockStatus(unlocked) {
     unlocked = false;
   if (unlocked) {
     if ( siaMonitor._walletstatus.label.text.localeCompare('Unlock wallet...') === 0 ) {
-      showNotification('Sia', 'Wallet unlocked');
+      showNotification('Wallet unlocked');
     }
     siaMonitor._walletstatus.label.text = 'Lock wallet...';
     getJSON('GET', '/wallet', null, updateWalletBalance);
@@ -535,26 +534,6 @@ function updateWalletLockStatus(unlocked) {
   }
   walletUnlocked = unlocked;
 };
-
-/* Show/hide items when wallet is unlocked/locked */
-function showWalletUnlockedItems(unlocked) {
-  if (unlocked) {
-    siaMonitor._walletbalance.actor.show();
-    siaMonitor._walletpending.actor.show();
-    siaMonitor._walletsend.actor.show();
-    siaMonitor._walletreceive.actor.show();
-    siaMonitor._filesSynced.actor.show();
-    siaMonitor._gbUsed.actor.show();
-  } else {
-    siaMonitor._walletbalance.actor.hide();
-    siaMonitor._walletpending.actor.hide();
-    siaMonitor._walletsend.actor.hide();
-    siaMonitor._walletreceive.actor.hide();
-    siaMonitor._filesSynced.actor.hide();
-    siaMonitor._gbUsed.actor.hide();
-  }
-  return;
-}
 
 /* Update the wallet balance in menu */
 function updateWalletBalance(code, json) {
@@ -584,6 +563,26 @@ function updateWalletBalance(code, json) {
   siaMonitor._walletpending.label.amount = pending;
 }
 
+/* Show/hide items when wallet is unlocked/locked */
+function showWalletUnlockedItems(unlocked) {
+  if (unlocked) {
+    siaMonitor._walletbalance.actor.show();
+    siaMonitor._walletpending.actor.show();
+    siaMonitor._walletsend.actor.show();
+    siaMonitor._walletreceive.actor.show();
+    siaMonitor._filesSynced.actor.show();
+    siaMonitor._gbUsed.actor.show();
+  } else {
+    siaMonitor._walletbalance.actor.hide();
+    siaMonitor._walletpending.actor.hide();
+    siaMonitor._walletsend.actor.hide();
+    siaMonitor._walletreceive.actor.hide();
+    siaMonitor._filesSynced.actor.hide();
+    siaMonitor._gbUsed.actor.hide();
+  }
+  return;
+}
+
 /* Notify about any new transactions */
 function notifyNewTransaction(balance, pending) {
   /* Get change in balance */
@@ -600,9 +599,9 @@ function notifyNewTransaction(balance, pending) {
 
   /* Report changes in pending, except amounts are confirmed */
   if (dpending > 0 && dbalance == 0)
-    showNotification('Sia', 'New incoming transfer: ' + newDiff + ' SC');
+    showNotification('New incoming transfer: ' + newDiff + ' SC');
   else if (dpending < 0)
-    showNotification('Sia', 'New outgoing transfer: ' + newDiff + ' SC');
+    showNotification('New outgoing transfer: ' + newDiff + ' SC');
 
 }
 
@@ -618,15 +617,7 @@ function disable() {
   siaMonitor.destroy();
 };
 
-/**
- * Query REST API and return results string (assumed to be JSON)
- * 
- * @param  string   method      GET or POST
- * @param  string   query       e.g. /consensus
- * @param  string   POST params e.g. "try=this"
- * @param  function callback  Callback function
- * @return {[type]}           JSON encoded string
- */
+/* Query REST API and return results string (assumed to be JSON) */
 const getJSON = function (method, query, postParams, callback) {
   let url = 'http://localhost:9980' + query;
 
@@ -637,12 +628,8 @@ const getJSON = function (method, query, postParams, callback) {
 
   _httpSession.queue_message(msg, function (session, msg) {
       if (msg.status_code == 200) {
-        //callback(null, JSON.parse(msg.response_body.data));
         callback(null, msg.response_body.data);
       } else {
-        //log('getJSON error url: ' + url);
-        //log('getJSON error status code: ' + msg.status_code);
-        //log('getJSON error response: ' + msg.response_body.data);
         siaMonitor._walletstatus.label.text = 'Sia not running';
         callback(msg.status_code, null);
       }
@@ -651,14 +638,10 @@ const getJSON = function (method, query, postParams, callback) {
 };
 
 /* Display desktop notification */
-function showNotification(subject, text) {
-  if (subject === undefined || subject === null) subject = 'Sia';
-  if (text === undefined || text === null) text = '';
-
+function showNotification(text) {
   let source = new MessageTray.Source('Sia Applet', 'system-status-icon');
   Main.messageTray.add(source);
-
-  let notification = new MessageTray.Notification(source, subject, text);
+  let notification = new MessageTray.Notification(source, 'Sia', text);
   notification.setTransient(true);
   source.notify(notification);
 };
@@ -673,28 +656,25 @@ const IconMenuItem = new Lang.Class({
 
         this._icon = new St.Icon({ x_align: St.Align.END, style_class: 'popup-menu-icon' });
         this.actor.add_child(this._icon);
-        this.setIcon(iconName);
+        this._setIcon(iconName);
 
         this.label = new St.Label({ text: text, style_class: style });
         this.actor.add_child(this.label);
         this.actor.label_actor = this.label
     },
 
-    setIcon: function(name) {
-        this._icon.gicon = createIcon(name);
+    _setIcon: function(name) {
+        this._icon.gicon = this._createIcon(name);
+    },
+
+    _createIcon: function(name, params) {
+      if (!name)
+        return null;
+      if (name[0] == '/')
+        return Gio.FileIcon.new(Gio.File.new_for_path(name));
+      // This is to hack through the gtk silly icon theme code. GTK doesn't want to mix
+      // symbolic icon and normal icon together, while in our case, it's much better to
+      // show an icon instead of hide everything.
+      return Gio.ThemedIcon.new_with_default_fallbacks(name + '-symbolic-hack');
     }
 });
-
-function createIcon(name, params) {
-  if (!name)
-    return null;
-
-  if (name[0] == '/') {
-    return Gio.FileIcon.new(Gio.File.new_for_path(name));
-  }
-  // this is to hack through the gtk silly icon theme code.
-  // gtk doesn't want to mix symbolic icon and normal icon together,
-  // while in our case, it's much better to show an icon instead of
-  // hide everything.
-  return Gio.ThemedIcon.new_with_default_fallbacks(name + '-symbolic-hack');
-}
