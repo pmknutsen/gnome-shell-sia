@@ -240,7 +240,6 @@ function pauseSync() {
 function createSiaDir() {
   Util.spawn(['mkdir', '-p', siadir]);
   let icondir = 'file://' + homedir + '/.local/share/gnome-shell/extensions/siacloudstorage@pmknutsen.github.com/icon.png';
-  showNotification('sia', icondir);
   Util.spawn(['gvfs-set-attribute', siadir, '-t', 'string', 'metadata::custom-icon', icondir]);
 }
 
