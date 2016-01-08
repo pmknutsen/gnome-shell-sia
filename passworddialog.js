@@ -12,7 +12,7 @@ const PasswordDialog = new Lang.Class({
   _callback : null,
 
   _init: function() {
-    this.parent({ styleClass: 'prompt-dialog' });
+    this.parent({ styleClass: 'sia-prompt-dialog' });
 
     // Main box which we'll put all widgets in
     let mainContentBox = new St.BoxLayout({ style_class: 'prompt-dialog-main-layout', vertical: false });
