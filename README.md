@@ -1,6 +1,6 @@
-##Sia Cloud Storage Extension for GNOME Shell - BETA VERSION
+##Sia Cloud Storage Extension for GNOME/Cinnamon
 
-The Sia Cloud Storage extension integrates Sia directly into your GNOME desktop. The extension automatically synchronizes files in a local folder (`~/Sia`) with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible.
+The Sia Cloud Storage extension integrates Sia directly into your GNOME and Cinnamon desktops. The extension automatically synchronizes files in a local folder (`~/Sia`) with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible.
 
 ###What is Sia?
 Sia is a blockchain-based decentralized cloud storage platform that allows users all over the world to contribute available storage space from their computers to form a decentralized network. Using Sia, you can rent storage from hosts on the network. This is accomplished via "smart" storage contracts stored on the Sia blockchain. Hosts are paid for storing files, oce the host has kept a file for an agreed amount of time.
@@ -20,11 +20,12 @@ Siacoins is the Sia network’s own currency, and is used to fund storage contra
 * Sync and upload statistics
 
 ###Install
-Install the extension by downloading all files into `~/.local/share/gnome-shell/extensions/sia@pmknutsen.github.com`, and then restart the GNOME shell with `Alt+F2` and `r`.
+Download and run the `install.sh` script, then restart your GNOME/Cinnamon desktop with `Alt+F2` and `r`.
 
 ```
-# Clone the Git repository
-git clone https://github.com/pmknutsen/gnome-shell-sia ~/.local/share/gnome-shell/extensions/sia@pmknutsen.github.com
+wget https://github.com/pmknutsen/gnome-shell-sia/blob/master/install.sh
+chmod +x install.sh
+./install.sh
 ```
 
 ###Versioning
@@ -40,6 +41,15 @@ storage contract of that version expires.
 
 Your wallet needs to be unlocked and funded in order for Sia to form new storage contracts with hosts. Restrictive firewalls may also prevent Sia from connecting to the cloud. If that is not the case and synchronization has indeed halted, try restarting the Sia daemon (`siac stop`).
 
+**"How do I backup files without moving them into the Sia folder?"**
+
+You can create symbolic links to existing folders, to recursively backup these without copies these folders and their content into the Sia sync folder. You create a symbolic link on the command line like this:
+
+`ln -s /path/to/folder ~/Sia/foldername`
+
+As long as you create a symbolic link with `-s`, then removing these folders from the ~/Sia folder at a later time will not remove the source folder.
+
+
 **"What are Siacoins and how to get them?"**
 
 Siacoins is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoins with bitcoins on an exchange, such as [Poloniex](http://poloniex.com). You can also request a small amount of free Siacoins from the faucet at [SiaPulse.com](http://siapulse.com/page/faucet).
@@ -51,7 +61,7 @@ To enable auto-start of the Sia daemon, the program `siad` needs to be in your p
 
 **"The extension does not run"**
 
-The extension may not be compatible with your version of GNOME. Please file an issue with details of your distribution and GNOME version and support may be added at a later time.
+The extension may not be compatible with your version of GNOME or Cinnamon. Please file an issue with details of your distribution and desktop versions.
 
 **"Where are old versions of my files?"**
 

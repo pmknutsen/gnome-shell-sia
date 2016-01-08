@@ -4,15 +4,17 @@ https://github.com/pmknutsen/gnome-shell-sia
 
 TODOs
   Show balances in USD (optional)
-  Notify: Files that expire soon
+  Renew files that have expired
   Notify: New file downloads (if synchronizing automatically)
-  Test and extend compatibility with more recent Gnome
+  Test and extend compatibility with GNOME 3.16 / 3.18
+  Test with Cinnamon desktop
   Announce host
   Host statistics (see new 0.5.0 API documentation)
   Download .sia files placed in Sia folder
   Trash folder: Remove files locally and from renter (i.e. don't renew)
   Menu item to download Sia ASCII
-  Upload if file-size has changed
+  Reduce verbosity (e.g. viewing all outgoing transfers is annoying)
+  Set emblems to folders during/after sync
 
 Troubleshooting:
   To view log messages in a terminal, replace gnome-shell with:
@@ -635,8 +637,9 @@ function notifyNewTransaction(balance, pending) {
   /* Report changes in pending, except amounts are confirmed */
   if (dpending > 0 && dbalance == 0)
     showNotification('New incoming transfer: ' + dpending + ' SC');
-  else if (dpending < 0)
-    showNotification('New outgoing transfer: ' + dpending + ' SC');
+  /* Do not show outgoing transfers. Ends up being annoying during sync. */
+  //else if (dpending < 0)
+  //  showNotification('New outgoing transfer: ' + dpending + ' SC');
 }
 
 /* Prettify a Siacoin amount with commas. Input is a string */
