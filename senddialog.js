@@ -12,7 +12,7 @@ const InputDialog = new Lang.Class({
   _callback : null,
 
   _init: function() {
-    this.parent({ styleClass: 'prompt-dialog' });
+    this.parent({ styleClass: 'sia-prompt-dialog' });
 
     /* IMPORTANT
       Gnome 3.18 no longer supports st.table
