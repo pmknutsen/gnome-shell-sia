@@ -244,6 +244,7 @@ function getIconPath() {
 /* Send Siacoins */
 function sendSiacoins(address, siacoins) {
   /* Validate address */
+  if (address === null) return;
   if (!isAddress(address)) {
     showNotification('Invalid address.');
     return;
@@ -261,12 +262,16 @@ function sendSiacoins(address, siacoins) {
   /* Send Siacoins */
   getJSON('POST', '/wallet/siacoins', 'amount=' + siacoins + '&destination=' + address, function(code, json) {
     let result = JSON.parse(json);
-    if ('transactionids' in result) {
-      /* Copy transaction ID to clipboard */
-      Clipboard.set_text(CLIPBOARD_TYPE, result.transactionids[0]);
-      showNotification('Sent ' + siacoins + ' SC. Transaction ID copied to clipboard.');
+    if (result === null) {
+        showNotification('Failed to send. Wallet not responding.');
     } else {
-      showNotification('Failed to send funds!');
+      if ('transactionids' in result) {
+        /* Copy transaction ID to clipboard */
+        Clipboard.set_text(CLIPBOARD_TYPE, result.transactionids[0]);
+        showNotification('Sent ' + siacoins + ' SC. Transaction ID copied to clipboard.');
+      } else {
+        showNotification('Failed to send funds!');
+      }
     }
   });
 }
@@ -287,6 +292,7 @@ function convertHastings(siacoins) {
 
 /* Address has to be lowercase hex and 76 chars */
 function isAddress(str) {
+  if (str === null) return false;
   return str.match(/^[a-f0-9]{76}$/) !== null;
 }
 
