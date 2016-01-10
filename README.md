@@ -32,7 +32,8 @@ chmod +x install.sh
 
 It is recommended that you also create a symbolic link in `/usr/bin` to your `siad` installation, so that the extension can auto-start Siad:
 
-`sudo ln -s /path/to/siad /usr/bin/siad` (Ubuntu / Mint)
+`sudo ln -s /path/to/siad /usr/bin/siad` (Ubuntu / Mint / Fedora)
+
 `su -c 'ln -s /path/to/siad /usr/bin/siad'` (Debian)
 
 Restart your desktop with `Alt+F2` and 'r' to start the extension.
