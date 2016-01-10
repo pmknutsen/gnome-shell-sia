@@ -40,10 +40,10 @@ const PasswordDialog = new Lang.Class({
     // Changes the way the password is shown
     this._passwdEntry.clutter_text.set_password_char('\u25cf');
           
-    // Creates a table so that we can fill up the box.
-    let table = new St.Table({ style_class: 'network-dialog-secret-table' });
-    
-    table.add(this._passwdEntry, { row: 0, col: 0, x_expand: true, x_fill: true, y_align: St.Align.END });
+    // Creates a widget so that we can fill up the box.
+    let table = new St.Widget({ layout_manager: new Clutter.TableLayout(), reactive:true, style_class: 'network-dialog-secret-table'});
+    let gridLayout = table.layout_manager;
+    gridLayout.pack(this._passwdEntry, 0, 0);
     messageBox.add(table);
     
     // Connect and Unlock buttons

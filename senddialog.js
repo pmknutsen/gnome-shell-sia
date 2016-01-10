@@ -14,12 +14,6 @@ const InputDialog = new Lang.Class({
   _init: function() {
     this.parent({ styleClass: 'sia-prompt-dialog' });
 
-    /* IMPORTANT
-      Gnome 3.18 no longer supports st.table
-      see https://github.com/The-Panacea-Projects/Gnomenu/commit/b7dec53593f43dc7686adf78ebc4065dd85a4d27
-      for workaround
-     */
-
     // Main box with all widgets
     let mainContentBox = new St.BoxLayout({ style_class: 'prompt-dialog-main-layout', vertical: true });
     this.contentLayout.add(mainContentBox, { x_fill: true, y_fill: false });
@@ -38,9 +32,10 @@ const InputDialog = new Lang.Class({
     this._addressEntry.clutter_text.connect('activate', Lang.bind(this, this._onOk)); // call onOk after key press
     this._addressEntry.clutter_text.connect('text-changed', Lang.bind(this, this._updateOkButton)); // enable Send on key press
     
-    // Creates a table and fill box
-    let table = new St.Table({ style_class: 'network-dialog-secret-table' });
-    table.add(this._addressEntry, { row: 0, col: 0, x_expand: true, x_fill: true, y_align: St.Align.END });
+    // Create a widget and fill box
+    let table = new St.Widget({ layout_manager: new Clutter.TableLayout(), reactive:true, style_class: 'network-dialog-secret-table'});
+    let gridLayout = table.layout_manager;
+    gridLayout.pack(this._addressEntry, 0, 0);
     messageBox.add(table);
 
     // Amount input field
@@ -48,11 +43,11 @@ const InputDialog = new Lang.Class({
     this._amountEntry.clutter_text.connect('activate', Lang.bind(this, this._onOk)); // call onOk after key press
     this._amountEntry.clutter_text.connect('text-changed', Lang.bind(this, this._updateOkButton)); // enable Send on key press
     
-    // Creates a table and fill box
-    let table = new St.Table({ style_class: 'network-dialog-secret-table' });
-    table.add(this._amountEntry, { row: 0, col: 0, x_expand: true, x_fill: true, y_align: St.Align.END });
+    // Create a widget and fill box
+    let table = new St.Widget({ layout_manager: new Clutter.TableLayout(), reactive:true, style_class: 'network-dialog-secret-table'});
+    let gridLayout = table.layout_manager;
+    gridLayout.pack(this._amountEntry, 0, 0);
     messageBox.add(table);
-
     
     // Connect and Unlock buttons
     this._okButton = { label:  _("Send Siacoins"),
