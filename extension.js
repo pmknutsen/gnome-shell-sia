@@ -163,12 +163,14 @@ const Sia = new Lang.Class({
   _getWalletPass : function() {
     getJSON('GET', '/wallet', null, function(code, json) {
       let wallet = JSON.parse(json);
-      if (wallet.unlocked) {
-        lockWallet();
-      } else {
-        let pdiag = new _pdiag.PasswordDialog;
-        pdiag.set_callback(unlockWallet);
-        pdiag.open(global.get_current_time());
+      if (wallet !== null) {
+        if (wallet.unlocked) {
+          lockWallet();
+        } else {
+          let pdiag = new _pdiag.PasswordDialog;
+          pdiag.set_callback(unlockWallet);
+          pdiag.open(global.get_current_time());
+        }
       }
     });
   },
