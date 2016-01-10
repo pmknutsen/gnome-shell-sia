@@ -3,6 +3,7 @@ Sia Cloud Storage Gnome Shell Extension
 https://github.com/pmknutsen/gnome-shell-sia
 
 TODOs
+  Show progress emblem on Sia icon in top panel
   Show balances in USD (optional)
   Renew files that have expired
   Notify: New file downloads (if synchronizing automatically)
@@ -13,7 +14,6 @@ TODOs
   Download .sia files placed in Sia folder
   Trash folder: Remove files locally and from renter (i.e. don't renew)
   Menu item to download Sia ASCII
-  Reduce verbosity (e.g. viewing all outgoing transfers is annoying)
   Set emblems to folders during/after sync
 
 Troubleshooting:
@@ -57,7 +57,7 @@ let siaMonitor;
 const HOMEDIR            = GLib.get_home_dir();
 const SIADIR             = 'Sia';
 const TIMER_INTERVAL     = 10;  // update interval, sec
-const FILE_SYNC_LIMIT    = 20;  // max # files to sync each cycle
+const FILE_SYNC_LIMIT    = 10;  // max # files to sync each cycle
 const SYNC_RECURSION_LIM = 100; // Sync recursion limit, folders
 
 let g_syncPause      = false;

@@ -8,7 +8,8 @@
 # Check unzip 
 command -v unzip >/dev/null 2>&1 || { echo "Error: Please install unzip"; exit 1; } 
 
-# Test which desktop is running
+# Test which desktop is running. By default, we install to GNOME shell.
+EXTENSION_PATH="$HOME/.local/share/gnome-shell/extensions";
 
 # Detect GNOME desktop
 if [ "$DESKTOP_SESSION" = "gnome" ]; then
@@ -32,14 +33,14 @@ fi
 URL="https://github.com/pmknutsen/gnome-shell-sia/archive/master.zip";
 
 # Extension UUID 
-EXTENSION_UUID="sia@pmknutsen@github.com";
+EXTENSION_UUID="sia@pmknutsen.github.com";
 
 # Download extension archive 
 wget --header='Accept-Encoding:none' -O /tmp/extension.zip "${URL}" 
 
 # Unzip extension to installation folder 
 mkdir -p "${EXTENSION_PATH}/${EXTENSION_UUID}";
-unzip /tmp/extension.zip -d ${EXTENSION_PATH}/${EXTENSION_UUID};
+unzip -q /tmp/extension.zip -d ${EXTENSION_PATH}/${EXTENSION_UUID};
 mv ${EXTENSION_PATH}/${EXTENSION_UUID}/gnome-shell-sia-master/* ${EXTENSION_PATH}/${EXTENSION_UUID};
 rmdir ${EXTENSION_PATH}/${EXTENSION_UUID}/gnome-shell-sia-master;
 
@@ -65,8 +66,8 @@ if [ "$EXTENSION_ENABLED" = "" ]; then
   fi
 
   # Extension is now available
-  echo "Extension with ID ${EXTENSION_ID} has been enabled. Restart your desktop to take effect." 
-fi 
+  echo "Extension with ID ${EXTENSION_ID} has been enabled. Restart your desktop to take effect (Alt+F2 then 'r')." 
+fi
 
 # remove temporary files 
 rm -f /tmp/extension.zip

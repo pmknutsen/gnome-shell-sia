@@ -1,5 +1,7 @@
 ##Sia Cloud Storage Extension for GNOME/Cinnamon
 
+*Note: The applet is currently broken in Cinnamon!*
+
 The Sia Cloud Storage extension integrates Sia directly into your GNOME and Cinnamon desktops. The extension automatically synchronizes files in a local folder (`~/Sia`) with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible.
 
 ###What is Sia?
@@ -23,10 +25,18 @@ Siacoins is the Sia network’s own currency, and is used to fund storage contra
 Download and run the `install.sh` script, then restart your GNOME/Cinnamon desktop with `Alt+F2` and `r`.
 
 ```
-wget https://github.com/pmknutsen/gnome-shell-sia/blob/master/install.sh
+wget -O install.sh https://git.io/vu1Df
 chmod +x install.sh
 ./install.sh
 ```
+
+It is recommended that you also create a symbolic link in `/usr/bin` to your `siad` installation, so that the extension can auto-start Siad:
+
+`sudo ln -s /path/to/siad /usr/bin/siad` (Ubuntu / Mint)
+`su -c 'ln -s /path/to/siad /usr/bin/siad'` (Debian)
+
+Restart your desktop with `Alt+F2` and 'r' to start the extension.
+
 
 ###Versioning
 Files that change locally are re-uploaded to the Sia cloud. The old versions of changed files are downloaded as hidden `.sia`
@@ -56,8 +66,7 @@ Siacoins is the Sia network’s own currency, and is used to fund storage contra
 
 **"Sia does not automatically start"**
 
-To enable auto-start of the Sia daemon, the program `siad` needs to be in your path. Create a symbolic link to siad:
-`sudo ln -s /path/to/siad /usr/bin/siad`
+To enable auto-start of the Sia daemon, the program `siad` needs to be in your path. See *Install* above and create a symblic link to your `siad` installation in `/usr/bin`.
 
 **"The extension does not run"**
 
