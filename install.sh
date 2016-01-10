@@ -8,28 +8,23 @@
 # Check unzip 
 command -v unzip >/dev/null 2>&1 || { echo "Error: Please install unzip"; exit 1; } 
 
-# Test which desktop is running. By default, we install to GNOME shell.
+# Test which desktop is running. By default, we assume GNOME shell.
 EXTENSION_PATH="$HOME/.local/share/gnome-shell/extensions";
 
 # Detect GNOME desktop
 if [ "$DESKTOP_SESSION" = "gnome" ]; then
   EXTENSION_PATH="$HOME/.local/share/gnome-shell/extensions";
-  if [ ! -d "$EXTENSION_PATH" ]; then
-    echo "Error: Detected GNOME desktop but could not find extensions directory";
-    exit 1;
-  fi
 fi
 
 # Detect Cinnamon desktop
 if [ "$DESKTOP_SESSION" = "cinnamon" ]; then
   EXTENSION_PATH="$HOME/.local/share/cinnamon/applets";
-  if [ ! -d "$EXTENSION_PATH" ]; then
-    echo "Error: Detected Cinnamon desktop but could not find applets directory";
-    exit 1;
-  fi
 fi
 
-# Set gnome shell extension site URL 
+# Extensions directory missing by default in some distributions, e.g. Fedora
+mkdir -p $EXTENSION_PATH;
+
+# Set URL to extension archive
 URL="https://github.com/pmknutsen/gnome-shell-sia/archive/master.zip";
 
 # Extension UUID 
