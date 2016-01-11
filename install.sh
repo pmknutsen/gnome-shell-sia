@@ -2,6 +2,8 @@
 #
 # Install Sia desktop extension/applet for GNOME or Cinnamon
 # 
+# Note: Currently broken in Cinnamon
+# 
 # Dependencies: unzip
 #
 
