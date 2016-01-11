@@ -1,8 +1,6 @@
-##Sia Cloud Storage Extension for GNOME/Cinnamon
+##Sia Cloud Storage Extension for GNOME
 
-*Note: The applet is currently broken in Cinnamon!*
-
-The Sia Cloud Storage extension integrates Sia directly into your GNOME and Cinnamon desktops. The extension automatically synchronizes files in a local folder (`~/Sia`) with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible.
+The Sia Cloud Storage extension integrates Sia directly into your GNOME desktop. The extension automatically synchronizes files in a local folder (`~/Sia`) with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible.
 
 ###What is Sia?
 Sia is a blockchain-based decentralized cloud storage platform that allows users all over the world to contribute available storage space from their computers to form a decentralized network. Using Sia, you can rent storage from hosts on the network. This is accomplished via "smart" storage contracts stored on the Sia blockchain. Hosts are paid for storing files, oce the host has kept a file for an agreed amount of time.
@@ -22,7 +20,7 @@ Siacoins is the Sia network’s own currency, and is used to fund storage contra
 * Sync and upload statistics
 
 ###Install
-Download and run the `install.sh` script, then restart your GNOME/Cinnamon desktop with `Alt+F2` and `r`.
+Download and run the `install.sh` script, then restart your GNOME desktop with `Alt+F2` and `r`.
 
 ```
 wget -O install.sh https://git.io/vu1Df
@@ -71,7 +69,10 @@ To enable auto-start of the Sia daemon, the program `siad` needs to be in your p
 
 **"The extension does not run"**
 
-The extension may not be compatible with your version of GNOME or Cinnamon. Please file an issue with details of your distribution and desktop versions.
+The extension may not be compatible with your version of GNOME. Please file an issue with details of your distribution and desktop versions. To aid troubleshooting include a copy of any error messages and warnings. You can view these error message by restarting the GNOME desktop in a terminal:
+
+`gnome-shell --replace --display=:0.0 &`
+
 
 **"Where are old versions of my files?"**
 
