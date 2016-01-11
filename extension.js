@@ -2,24 +2,6 @@
 Sia Cloud Storage Gnome Shell Extension
 https://github.com/pmknutsen/gnome-shell-sia
 
-TODOs
-  Show progress emblem on Sia icon in top panel
-  Show balances in USD (optional)
-  Renew files that have expired
-  Notify: New file downloads (if synchronizing automatically)
-  Test and extend compatibility with GNOME 3.16 / 3.18
-  Test with Cinnamon desktop
-  Announce host
-  Host statistics (see new 0.5.0 API documentation)
-  Download .sia files placed in Sia folder
-  Trash folder: Remove files locally and from renter (i.e. don't renew)
-  Menu item to download Sia ASCII
-  Set emblems to folders during/after sync
-
-Troubleshooting:
-  To view log messages in a terminal, replace gnome-shell with:
-    gnome-shell --replace --display=:0.0 &
-
 */
 
 const St          = imports.gi.St;   // https://developer.gnome.org/st/stable/
