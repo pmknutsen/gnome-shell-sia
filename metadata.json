@@ -4,6 +4,6 @@
 	"url"  		    	: "https://github.com/pmknutsen/gnome-shell-sia",
 	"uuid" 		    	: "sia@pmknutsen.github.com",
 	"name" 		    	: "Sia Cloud Storage",
-	"description"   	: "Backup computer to the blockchain-based Sia decentralized storage network. Auto-sync, file versioning and wallet functions. Requires Sia v0.5.0.",
+	"description"   	: "Backup computer to the Sia decentralized storage network.",
 	"version"	    	: 0.1
 }
