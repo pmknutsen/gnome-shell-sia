@@ -1,6 +1,12 @@
 ##Sia Cloud Storage Extension for GNOME
 
+*Important: The current version works with Sia v.0.4.8 and older only. Sia v0.5.0 is scheduled to be released late January, 2016.
+An updated version of Sia GNOME will be released soon after Sia v.0.5.0. That version will NOT be compatible
+with Sia v0.4.8 and older! After you update to Sia v.0.5.0 make sure to come back here and get the latest version!*
+
+
 The Sia Cloud Storage extension integrates Sia directly into your GNOME desktop. The extension automatically synchronizes files in a local folder (`~/Sia`) with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible.
+
 
 ###What is Sia?
 Sia is a blockchain-based decentralized cloud storage platform that allows users all over the world to contribute available storage space from their computers to form a decentralized network. Using Sia, you can rent storage from hosts on the network. This is accomplished via "smart" storage contracts stored on the Sia blockchain. Hosts are paid for storing files, oce the host has kept a file for an agreed amount of time.
