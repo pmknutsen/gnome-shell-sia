@@ -52,12 +52,6 @@ Sia does not support versioning directly. This extension compares the size of up
 hidden file in the same location as the file. You can therefore retrieve the previous version for up to 14 days (see **Persistence**).
 
 
-###Icon emblems
-The icons of uploaded files are updated with emblems (overlays) when the upload status changes. While a file is being synchronized a refresh style
-
-Upload in progress: Refresh
-
-
 ###Troubleshooting
 **"My files are not uploaded to the cloud"**
 
@@ -90,6 +84,11 @@ The extension may not be compatible with your version of GNOME. Please file an i
 **"Where are old versions of my files?"**
 
 See **Versioning**.
+
+**"Synchronization has stalled"**
+
+This might happen if the file is temporarily not available, such as might happend if you are backing up an external drive and unmounting it for periods of time. In order to maintain the integrity of files on the network, Sia requires that the file is always available. You should only be synchronizing folders and files that are available whenever Sia is running on your computer.
+
 
 ###License
 **The MIT License (MIT)**
