@@ -1,17 +1,12 @@
 ##Sia Cloud Storage Extension for GNOME
 
-*Important: The current version works with Sia v.0.4.8 and older only. Sia v0.5.0 is scheduled to be released late January, 2016.
-An updated version of Sia GNOME will be released soon after Sia v.0.5.0. That version will NOT be compatible
-with Sia v0.4.8 and older! After you update to Sia v.0.5.0 make sure to come back here and get the latest version!*
-
-
-The Sia Cloud Storage extension integrates Sia directly into your GNOME desktop. The extension automatically synchronizes files in a local folder (`~/Sia`) with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible.
+The Sia Cloud Storage extension integrates Sia directly into your GNOME desktop. Files in `~/Sia` are automatically synchronized with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible. Sia v.0.5.0 or newer is required.
 
 
 ###What is Sia?
-Sia is a blockchain-based decentralized cloud storage platform that allows users all over the world to contribute available storage space from their computers to form a decentralized network. Using Sia, you can rent storage from hosts on the network. This is accomplished via "smart" storage contracts stored on the Sia blockchain. Hosts are paid for storing files, oce the host has kept a file for an agreed amount of time.
+Sia is a blockchain-based decentralized cloud storage platform that allows users all over the world to contribute available storage space from their computers to form a decentralized network. Using Sia, you can rent storage from hosts on the network. This is accomplished via "smart" storage contracts stored on the Sia blockchain. Hosts are paid for storing files, once the host has kept a file for an agreed amount of time.
 
-Siacoins is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoin on an exchange.
+Siacoins is the Sia network’s own currency, and are used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoin on an exchange.
 
 ![Sia GNOME Extension](./img/screenshot-2.png)   ![Sia GNOME Extension](./img/screenshot.png)
 
@@ -24,8 +19,11 @@ Siacoins is the Sia network’s own currency, and is used to fund storage contra
 * Create address to receive funds
 * Auto-start Sia daemon (requires `siad` to be found in path)
 * Sync and upload statistics
+* File icon emblems/overlays that indicate upload status
 
 ###Install
+Before you install, make sure you are running a recent version of Sia. This extension uses version numbers that match the latest version Sia which it has been tested for. Backward compatibility should be guaranteed after v0.5.0, but note that the extension is *no longer compatible with Sia v0.4.8 and older*.
+
 Download and run the `install.sh` script, then restart your GNOME desktop with `Alt+F2` and `r`.
 
 ```
@@ -43,13 +41,22 @@ It is recommended that you also create a symbolic link in `/usr/bin` to your `si
 Restart your desktop with `Alt+F2` and 'r' to start the extension.
 
 
+###Persistence
+Files are, by default, uploaded for a period of ~14 days (2,000 blocks). It is then renewed for another 14 days, and so on.
+If the file is deleted at any time, it can still be retrieved for up to 14 days through the UI wallet.
+
+
 ###Versioning
-Files that change locally are re-uploaded to the Sia cloud. The old versions of changed files are downloaded as hidden `.sia`
-files into the local sync folder, and then removed from the Sia renter. Thus, old versions are no longer available through
-the graphical wallet, but can be restored using the hidden `.sia` files. The version of the file in the renter is therefore
-always the latest version. Note that users you have shared your file with cannot access the latest version, unless you re-share
-the new Sia sharing code with them. They can, however, continue to access the old version you shared with them until the file
-storage contract of that version expires.
+Sia does not support versioning directly. This extension compares the size of uploaded files. If the filesize is changed
+(e.g. after editing the file) the old version is removed and replaced on the Sia cloud. A copy of the `.sia` file is stored as a
+hidden file in the same location as the file. You can therefore retrieve the previous version for up to 14 days (see **Persistence**).
+
+
+###Icon emblems
+The icons of uploaded files are updated with emblems (overlays) when the upload status changes. While a file is being synchronized a refresh style
+
+Upload in progress: Refresh
+
 
 ###Troubleshooting
 **"My files are not uploaded to the cloud"**

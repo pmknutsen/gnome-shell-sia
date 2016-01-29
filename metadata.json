@@ -1,9 +1,8 @@
 {
 	"shell-version" 	: [ "3.10", "3.12", "3.14", "3.16", "3.18" ],
-	"cinnamon-version" 	: [ "2.8.6" ],
 	"url"  		    	: "https://github.com/pmknutsen/gnome-shell-sia",
 	"uuid" 		    	: "sia@pmknutsen.github.com",
 	"name" 		    	: "Sia Cloud Storage",
-	"description"   	: "Backup computer to the Sia decentralized storage network.",
-	"version"	    	: 0.1
+	"description"   	: "Automated backup to the Sia decentralized cloud storage network.",
+	"version"	    	: "0.5.1"
 }

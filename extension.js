@@ -1,7 +1,6 @@
 /*
 Sia Cloud Storage Gnome Shell Extension
 https://github.com/pmknutsen/gnome-shell-sia
-
 */
 
 const St          = imports.gi.St;   // https://developer.gnome.org/st/stable/
@@ -38,13 +37,21 @@ let siaMonitor;
 
 const HOMEDIR            = GLib.get_home_dir();
 const SIADIR             = 'Sia';
-const TIMER_INTERVAL     = 10;  // update interval, sec
-const FILE_SYNC_LIMIT    = 10;  // max # files to sync each cycle
-const SYNC_RECURSION_LIM = 100; // Sync recursion limit, folders
+const SYNCFOLDERNAME     = 'Desktop';     // name used for folder in Sia renter (and UI)
+const TIMER_INTERVAL     = 30;            // update interval, sec
+const FILE_SYNC_LIMIT    = 10;            // max # files to sync each cycle
+const SYNC_RECURSION_LIM = 100;           // Sync recursion limit, folders
+const MAX_FILES_QUEUED   = 20;            // max # files in renter queue (limits sync intensity)
+const REDUNDANCY         = 6;             // redundancy factor (should match what is hardcoded in siad)
+const DEFAULTDURATION    = 2000;          // default upload duration (blocks)
+const RENEWFILES         = false;         // renew uploaded files
+const ENABLELOGGING      = false;         // log messages printed to log()
 
-let g_syncPause      = false;
-let walletUnlocked   = false;
-let currentBlock     = 0;
+let g_syncPause          = false;
+let walletUnlocked       = false;
+let g_currentBlock       = 0;
+let g_fileEmblems        = [];
+let g_versionOk          = true;
 
 /* Start sync timer */
 let timeoutID = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, TIMER_INTERVAL, timerExec);
@@ -66,15 +73,16 @@ const Sia = new Lang.Class({
   Name : 'Sia',
   Extends : PanelMenu.Button,
 
-  _walletstatus :   null,
-  _walletbalance :  null,
-  _walletpending :  null,
-  _walletsend :     null,
-  _walletreceive :  null,
-  _pausesync :      null,
-  _siaIcon :        null,
-  _filesSynced :    null,
-  _gbUsed :         null,
+  _walletstatus :    null,
+  _walletbalance :   null,
+  _walletpending :   null,
+  _walletsend :      null,
+  _walletreceive :   null,
+  _pausesync :       null,
+  _siaIcon :         null,
+  _filesSynced :     null,
+  _filesRedundancy : null,
+  _gbUsed :          null,
 
   _init : function() {
     this.parent(0.0, "Sia");
@@ -96,8 +104,8 @@ const Sia = new Lang.Class({
 
   _startSiad : function() {
     getJSON('GET', '/consensus', null, function(code, json) {
-      let wallet = JSON.parse(json);
-      if (wallet === undefined || wallet === null) {
+      let result = JSON.parse(json);
+      if (result === undefined || result === null) {
         /* Start siad */
         let path = GLib.find_program_in_path('siad');
         if (path === null) {
@@ -123,7 +131,9 @@ const Sia = new Lang.Class({
     this._newPopupSeparator(this, this._updateBalance);
 
     this._newPopupMenuItem(this, 'Open Sia Folder', 'folder-open', 'menu-item', this._openSyncFolder);
-    this._filesSynced  = this._newPopupMenuItem(this, '', null, 'menu-subitem2', syncSiaFolder);
+    this._filesSynced      = this._newPopupMenuItem(this, '', null, 'menu-subitem2', syncSiaFolder);
+    this._filesRedundancy  = this._newPopupMenuItem(this, '', null, 'menu-subitem2', syncSiaFolder);
+
     this._gbUsed       = this._newPopupMenuItem(this, '', null, 'menu-subitem2', syncSiaFolder);
     this._pausesync    = this._newPopupMenuItem(this, 'Pause Syncing', null, 'menu-subitem', pauseSync);
   },
@@ -197,6 +207,18 @@ function enable() {
   showWalletUnlockedItems(walletUnlocked);
   updateBlockCounter();
   updateRenterMenu();
+}
+
+/* Called when the extension is deactivated (maybe multiple times) */
+function disable() {
+  siaMonitor.destroy();
+}
+
+/* Log to log() */
+function logMsg(msg) {
+  if (ENABLELOGGING)
+    log('Sia: ' + msg);
+  return;
 }
 
 /* Pause synchronization */
@@ -297,16 +319,23 @@ function syncSiaFolder() {
   if (!walletUnlocked) return;
 
   /* Get list of files in renter */
-  getJSON('GET', '/renter/files/list', null, function(code, json) {
+  getJSON('GET', '/renter/files', null, function(code, json) {
     let renter = JSON.parse(json);
     if (renter === null) return;
+    renter = renter.files;
+
+    /* Abort sync if there are too many unavailable files in renter queue */
+    if (getIncompleteFiles(renter) >= MAX_FILES_QUEUED) {
+      logMsg('Too many files in renter queue. Sync aborted.');
+      return;
+    }
 
     /* Start sync */
     syncLevel = 0;
     if (!g_syncPause) {
       let fcount = syncFolder(HOMEDIR + '/' + SIADIR, renter, 0);
       if (fcount > 0) {
-        showNotification('Uploaded ' + fcount + ' files');
+        showNotification('Started upload of ' + fcount + ' files.');
       }
     }
 
@@ -318,15 +347,23 @@ function syncFolder(path, renter, fcount) {
   syncLevel += 1;
   if (syncLevel > SYNC_RECURSION_LIM) {
     showNotification('Reached directory recursion limit (' + SYNC_RECURSION_LIM + ').');
-    return;
+    return fcount;
   }
 
   /* Get list of local files and directories */
-  let folder    = Gio.file_new_for_path( path );
-  let children  = folder.enumerate_children('*', 0, null, null);
   let files     = [];
   let dirs      = [];
   let file_info = null;
+  let children  = null;
+
+  let folder    = Gio.file_new_for_path( path );
+  try {
+    children = folder.enumerate_children('*', 0, null, null);
+  } catch (err) {
+    logMsg('Permissions denied on ' + path + ': ' + err);
+    return fcount;
+  }
+
   while ((file_info = children.next_file(null, null)) !== null) {
     if (file_info.get_is_hidden()) { continue; }          // skip hidden files
     if (isDirectory(file_info)) { dirs.push(file_info); } // is directory
@@ -341,7 +378,7 @@ function syncFolder(path, renter, fcount) {
   let d;
   for (d = 0; d < dirs.length; d++) {
     fcount = syncFolder(path + '/' + dirs[d].get_name() , renter, fcount);
-    if (fcount == FILE_SYNC_LIMIT) break;
+    if (fcount >= FILE_SYNC_LIMIT) break;
   }
 
   return fcount;
@@ -350,6 +387,7 @@ function syncFolder(path, renter, fcount) {
 /* Synchronize files with renter */
 function syncFiles(path, files, renter, fcount) {
   let f, r;
+
   for (f = 0; f < files.length; f++) {
     let filename     = files[f].get_name();
     let upload       = true;
@@ -361,51 +399,58 @@ function syncFiles(path, files, renter, fcount) {
 
     /* Remove root path and leading slash from nickname */
     nickname = nickname.replace(HOMEDIR + '/' + SIADIR + '/', '');
-
-    /* Substitute forward slash with double underscore
-       TODO Update when 0.5.0 is out
-    */
-    nickname = nickname.replace(/\//g, '__');
-
-    /* TODO Versioning will be implemented in 0.5.0 or later version when /renter/rename becomes available
-      Currently, if the size of a file changes, the .sia file of the old upload is copied into the sync folder
-      as .filename.sia (i.e. hidden) and then removed from the renter. The update local file is then
-      re-uploaded.
-
-      This ensures that the most current file is always uploaded. Old version are backed up as .sia files locally.
-     */
+    nickname = SYNCFOLDERNAME + '/' + nickname;
 
     /* Compare file with files in renter
        Skip files that are already in the renter unless file size is different
     */
-    for (r = 0; r < renter.length; r++) {
-      if ( nickname.localeCompare(renter[r].Nickname) === 0 ) {
+    for (var r in renter) {
+      if (renter[r]['siapath'] == nickname) {
+        let remainingBlocks = renter[r].expiration - g_currentBlock;
+        let elapsedBlocks   = DEFAULTDURATION - remainingBlocks;
 
         /* Do not upload empty files */
-        if ( files[f].get_size() === 0 )
+        if ( files[f].get_size() === 0 ) {
+          logMsg('Will not upload empty file: ' + filename);
           upload = false;
-
-        /* Check if the file has been updated locally */
-        else if ( files[f].get_size() !== renter[r].Filesize ) {
-          fileUpdated = true;
         }
 
+        /* Check if the file has been updated locally */
+        else if ( files[f].get_size() !== renter[r].filesize )
+          fileUpdated = true;
+
         /* Do not upload if file has remaining time or is still syncing */
-        else if ( renter[r].TimeRemaining  > 0 || renter[r].UploadProgress < 100 )
+        else if ( remainingBlocks > 0 || renter[r].uploadprogress < 100 ) {
+          logMsg('File already in renter: ' + filename);
           upload = false;
+        }
 
         /* Update file icon emblems/overlays */
-        let emblem = '';
-        if (renter[r].Available)
-          emblem = 'emblem-default';
-        if (renter[r].UploadProgress < 100)
+        let emblem = null;
+        if (renter[r].uploadprogress < 100)
           emblem = 'view-refresh';
-        if (renter[r].UploadProgress > 50)
+        if (renter[r].available)
+          emblem = 'emblem-default';
+        if (renter[r].uploadprogress == 100) // full redundancy reached
           emblem = 'emblem-favorite';
-        if (renter[r].TimeRemaining > 0 && renter[r].TimeRemaining < 300 )
-          emblem = 'emblem-important';
-        setEmblem(siaPath, emblem);
+        if ( remainingBlocks > 0 && remainingBlocks < 300 )
+          emblem = 'emblem-urgent';
+        if (emblem !== null)
+          g_fileEmblems.push({path:siaPath, emblem:emblem});
 
+        /* Delete expired files in renter */
+        if (remainingBlocks == 0)
+          deleteSiaFile(nickname);
+
+        /* Deleted stalled files - defined as 'unavailable' and with start-of-upload time > 48 h/GB ago
+           TODO: There is still a risk of stalled files persisting if upload never started.
+         */
+        let fileSize = renter[r].filesize / Math.pow(1024, 3); // bytes -> GB
+        let blocks   = Math.ceil(fileSize) * (6 * 48);
+        if (   (!renter[r].available && elapsedBlocks > blocks && renter[r].expiration > 0 ) ) {
+          logMsg('Upload of ' + siaPath + ' aborted: ' + JSON.stringify(renter[r]));
+          deleteSiaFile(nickname);
+        }
         break;
       }
     }
@@ -422,60 +467,104 @@ function syncFiles(path, files, renter, fcount) {
         dotsiaPath = dotsiaPath + '/.' + dotsiaFile + '.sia';
 
         /* Download .sia file */
-        // TODO Update route and parameter names in 0.5.0
-        getJSON('GET', '/renter/files/share?nickname=' + nickname + '&filepath=' + dotsiaPath, '', checkDownload);
+        getJSON('GET', '/renter/share?siapaths=' + nickname + '&destination=' + dotsiaPath, '', checkDownload);
+        logMsg('Download .sia of ' + nickname);
 
         /* Delete file in renter */
-        getJSON('GET', '/renter/files/delete?nickname=' + nickname, '', checkDownload);
+        deleteSiaFile(nickname);
 
       } else {
-        getJSON('POST', '/renter/files/upload', 'source=' + siaPath + '&nickname=' + nickname, checkUpload);
+        getJSON('POST', '/renter/upload/' + nickname, 'source=' + siaPath + '&duration=' + DEFAULTDURATION + '&renew=' + RENEWFILES, checkUpload);
+        logMsg('Upload ' + siaPath);
         fcount += 1;
+        if (fcount >= FILE_SYNC_LIMIT) return fcount;
       }
     }
 
     /* Limit number of files synced this cycle (remaining files picked up next cycle) */
-    if (fcount == FILE_SYNC_LIMIT) break;
+    if (fcount >= FILE_SYNC_LIMIT) return fcount;
   }
   return fcount;
 }
 
-/* Set emblem on file / directory */
-function setEmblem(path, emblem) {
-  Util.spawn(['gvfs-set-attribute', path, '-t', 'stringv', 'metadata::emblems', emblem]);  
+/* Get number of files in renter that are still syncing */
+function getIncompleteFiles(renter) {
+  let notavailable = 0;
+  for (var r in renter) {
+    if ( !renter[r].available )
+      notavailable += 1;
+  }
+  return notavailable;
 }
+
+/* Update emblems on files and directories
+   Emblems are updated sequentially and asynchronously with information provided by
+   the global variable g_fileEmblems.
+*/
+function setEmblems() {
+  /* Iterate over g_fileEmblems while its not empty */
+  while ( g_fileEmblems.length > 0 ) {
+    let emlinfo = g_fileEmblems.shift();
+
+    let priority = GLib.PRIORITY_DEFAULT;
+    let cancellable = new Gio.Cancellable();
+    let flags = Gio.FileQueryInfoFlags.NONE;
+
+    let file = Gio.File.new_for_path(emlinfo.path);
+    file.query_info_async('metadata::emblems', flags, priority, cancellable, (file, res) => {
+      let info = file.query_info_finish(res);
+      info.set_attribute_stringv('metadata::emblems', [emlinfo.emblem]);
+      file.set_attributes_async(info, flags, priority, cancellable, (file, res) => {
+        file.set_attributes_finish(res);
+      });
+    });
+  };
+}
+
+/* Delete file in renter */
+function deleteSiaFile(siapath) {
+  getJSON('POST', '/renter/delete/' + siapath, null, function (code, json) {
+    let result = JSON.parse(json);
+    if (result === null)
+      logMsg('Sia: File deletion failed: ' + json);
+  });
+};
 
 /* Verify new file download and report errors */
 function checkDownload(code, json) {
   let result = JSON.parse(json);
   if (result === null)
-    showNotification('File download failed: ' + json);
+    logMsg('File download failed: ' + json);
 };
 
 /* Verify new file upload and report errors */
 function checkUpload(code, json) {
   let result = JSON.parse(json);
   if (result === null)
-    showNotification('File upload failed.');
+    logMsg('File upload failed.');
 };
 
 /* Update menu with renter statistics */
 function updateRenterMenu() {
   /* Get list of files in renter */
-  getJSON('GET', '/renter/files/list', null, function(code, json) {
+  getJSON('GET', '/renter/files', null, function(code, json) {
     let renter = JSON.parse(json);
     if (renter === null) return;
+    renter = renter.files;
 
     let filesSynced = 0;
     let usedStorage = 0;
+    let avgRedundancy = 0;
     let r;
     for (r = 0; r < renter.length; r++) {
-      usedStorage += renter[r].Filesize;
-      if (renter[r].Available)
+      usedStorage += renter[r].filesize * (renter[r].uploadprogress / 100) * REDUNDANCY;
+      avgRedundancy += renter[r].uploadprogress;
+      if (renter[r].available)
         filesSynced += 1;
     }
     usedStorage = usedStorage / Math.pow(1024, 3); // bytes -> GB
-    siaMonitor._filesSynced.label.text = filesSynced + ' / ' + r + ' files synced';
+    siaMonitor._filesSynced.label.text = filesSynced + ' / ' + r + ' files uploaded';
+    siaMonitor._filesRedundancy.label.text = Math.round(avgRedundancy / r) + '% average upload progress';
     siaMonitor._gbUsed.label.text = usedStorage.toFixed(2) + ' GB used';
   });
 }
@@ -529,8 +618,12 @@ function timerExec() {
   /* Update renter statistics */
   updateRenterMenu();
 
-  /* Sync */
-  syncSiaFolder();
+  /* Sync, if wallet has positive balance */
+  if ( siaMonitor._walletbalance.label.amount > 0 )
+    syncSiaFolder();
+
+  /* Update file/directory emblems */
+  setEmblems();
 
   return true;
 }
@@ -540,7 +633,7 @@ function updateBlockCounter() {
   getJSON('GET', '/consensus', null, function(code, json) {
     let consensus = JSON.parse(json);
     if (consensus !== null) {
-      currentBlock = consensus.height;
+      g_currentBlock = consensus.height;
     }
   });
 }
@@ -584,7 +677,7 @@ function updateWalletBalance(code, json) {
   notifyNewTransaction(balance, pending);
 
   siaMonitor._walletbalance.label.text   = "Balance: " + balance + " SC";
-  siaMonitor._walletbalance.label.amount = balance;
+  siaMonitor._walletbalance.label.amount = convertSiacoin( data.confirmedsiacoinbalance );
   siaMonitor._walletpending.label.text   = "Pending: " + pending + " SC";
   siaMonitor._walletpending.label.amount = pending;
 }
@@ -597,6 +690,7 @@ function showWalletUnlockedItems(unlocked) {
     siaMonitor._walletsend.actor.show();
     siaMonitor._walletreceive.actor.show();
     siaMonitor._filesSynced.actor.show();
+    siaMonitor._filesRedundancy.actor.show();
     siaMonitor._gbUsed.actor.show();
   } else {
     siaMonitor._walletbalance.actor.hide();
@@ -604,6 +698,7 @@ function showWalletUnlockedItems(unlocked) {
     siaMonitor._walletsend.actor.hide();
     siaMonitor._walletreceive.actor.hide();
     siaMonitor._filesSynced.actor.hide();
+    siaMonitor._filesRedundancy.actor.hide();
     siaMonitor._gbUsed.actor.hide();
   }
   return;
@@ -637,11 +732,6 @@ function prettySiacoin(siacoins) {
   if (siacoins === '0' || siacoins === undefined || siacoins === null) return '0';
   siacoins = siacoins.toString();
   return siacoins.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-/* Called when the extension is deactivated (maybe multiple times) */
-function disable() {
-  siaMonitor.destroy();
 }
 
 /* Query REST API and return results string (assumed to be JSON) */
