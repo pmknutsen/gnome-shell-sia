@@ -554,17 +554,18 @@ function updateRenterMenu() {
 
     let filesSynced = 0;
     let usedStorage = 0;
-    let avgRedundancy = 0;
+    let avgRedundancy = 0.001;
     let r;
     for (r = 0; r < renter.length; r++) {
       usedStorage += renter[r].filesize * (renter[r].uploadprogress / 100) * REDUNDANCY;
-      avgRedundancy += renter[r].uploadprogress;
-      if (renter[r].available)
+      if (renter[r].uploadprogress == 100)
         filesSynced += 1;
+      else
+        avgRedundancy += renter[r].uploadprogress;
     }
     usedStorage = usedStorage / Math.pow(1024, 3); // bytes -> GB
-    siaMonitor._filesSynced.label.text = filesSynced + ' / ' + r + ' files uploaded';
-    siaMonitor._filesRedundancy.label.text = Math.round(avgRedundancy / r) + '% average upload progress';
+    siaMonitor._filesSynced.label.text = filesSynced + ' / ' + r + ' files completed';
+    siaMonitor._filesRedundancy.label.text = 'Queued files ' + Math.round(avgRedundancy / r) + '% complete';
     siaMonitor._gbUsed.label.text = usedStorage.toFixed(2) + ' GB used';
   });
 }
