@@ -39,9 +39,9 @@ const HOMEDIR            = GLib.get_home_dir();
 const SIADIR             = 'Sia';
 const SYNCFOLDERNAME     = 'Desktop';     // name used for folder in Sia renter (and UI)
 const TIMER_INTERVAL     = 30;            // update interval, sec
-const FILE_SYNC_LIMIT    = 10;            // max # files to sync each cycle
-const SYNC_RECURSION_LIM = 100;           // Sync recursion limit, folders
-const MAX_FILES_QUEUED   = 20;            // max # files in renter queue (limits sync intensity)
+const FILE_SYNC_LIMIT    = 5;             // max # files to sync each cycle
+const SYNC_RECURSION_LIM = 20;            // Sync recursion limit, folders
+const MAX_FILES_QUEUED   = 5;             // max # files in renter queue (limits sync intensity)
 const REDUNDANCY         = 6;             // redundancy factor (should match what is hardcoded in siad)
 const DEFAULTDURATION    = 2000;          // default upload duration (blocks)
 const RENEWFILES         = false;         // renew uploaded files
@@ -491,7 +491,7 @@ function syncFiles(path, files, renter, fcount) {
 function getIncompleteFiles(renter) {
   let notavailable = 0;
   for (var r in renter) {
-    if ( !renter[r].available )
+    if ( renter[r].uploadprogress < 100 )
       notavailable += 1;
   }
   return notavailable;
