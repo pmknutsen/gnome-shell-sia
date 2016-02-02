@@ -489,12 +489,12 @@ function syncFiles(path, files, renter, fcount) {
 
 /* Get number of files in renter that are still syncing */
 function getIncompleteFiles(renter) {
-  let notavailable = 0;
+  let incomplete = 0;
   for (var r in renter) {
     if ( renter[r].uploadprogress < 100 )
-      notavailable += 1;
+      incomplete += 1;
   }
-  return notavailable;
+  return incomplete;
 }
 
 /* Update emblems on files and directories
