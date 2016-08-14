@@ -78,6 +78,7 @@ const Sia = new Lang.Class({
   _walletpending :   null,
   _walletsend :      null,
   _walletreceive :   null,
+  _allowance :       null,
   _pausesync :       null,
   _siaIcon :         null,
   _filesSynced :     null,
@@ -127,6 +128,7 @@ const Sia = new Lang.Class({
     this._walletpending = this._newPopupMenuItem(this, 'Pending: 0 SC', null, 'menu-subitem', this._updateBalance);
     this._walletsend    = this._newPopupMenuItem(this, 'Send Funds...', null, 'menu-subitem', this._sendSiacoins);
     this._walletreceive = this._newPopupMenuItem(this, 'Receive Funds...', null, 'menu-subitem', this._receiveSiacoins);
+    this._allowance     = this._newPopupMenuItem(this, 'Buy Storage...', null, 'menu-subitem', this._setAllowance);
 
     this._newPopupSeparator(this, this._updateBalance);
 
@@ -176,6 +178,22 @@ const Sia = new Lang.Class({
 
   /* Receive Siacoins (copy address to clipboard) */
   _receiveSiacoins : function() {
+    /* Get new address */
+    getJSON('GET', '/wallet/address', null, function(code, json) {
+      let result = JSON.parse(json);
+      Clipboard.set_text(CLIPBOARD_TYPE, result.address);
+      showNotification('Siacoin address copied to clipboard.');
+    });
+  },
+
+  /* Set storage allowance */
+  _setAllowance : function() {
+    /* TODO
+        Estimate price from hostdb
+        Input field to set how much storage I want
+        Check if wallet has enough funds to pre-pay storage
+
+    */
     /* Get new address */
     getJSON('GET', '/wallet/address', null, function(code, json) {
       let result = JSON.parse(json);
@@ -378,7 +396,6 @@ function syncFolder(path, renter, fcount) {
   let d;
   for (d = 0; d < dirs.length; d++) {
     fcount = syncFolder(path + '/' + dirs[d].get_name() , renter, fcount);
-    if (fcount >= FILE_SYNC_LIMIT) break;
   }
 
   return fcount;
@@ -456,7 +473,7 @@ function syncFiles(path, files, renter, fcount) {
     }
 
     /* Upload file */
-    if (upload && walletUnlocked) {
+    if (upload && walletUnlocked && fcount < FILE_SYNC_LIMIT) {
       /* If a file has been updated, download .sia file into current path and remove from renter.
          The local file will be re-uploaded in the next sync cycle.
       */
@@ -477,12 +494,8 @@ function syncFiles(path, files, renter, fcount) {
         getJSON('POST', '/renter/upload/' + nickname, 'source=' + siaPath + '&duration=' + DEFAULTDURATION + '&renew=' + RENEWFILES, checkUpload);
         logMsg('Upload ' + siaPath);
         fcount += 1;
-        if (fcount >= FILE_SYNC_LIMIT) return fcount;
       }
     }
-
-    /* Limit number of files synced this cycle (remaining files picked up next cycle) */
-    if (fcount >= FILE_SYNC_LIMIT) return fcount;
   }
   return fcount;
 }
@@ -565,7 +578,10 @@ function updateRenterMenu() {
     }
     usedStorage = usedStorage / Math.pow(1024, 3); // bytes -> GB
     siaMonitor._filesSynced.label.text = filesSynced + ' / ' + r + ' files completed';
-    siaMonitor._filesRedundancy.label.text = 'Queued files ' + Math.round(avgRedundancy / r) + '% complete';
+    if (avgRedundancy < 0.01)
+      siaMonitor._filesRedundancy.label.text = 'No files in upload queue';
+    else
+      siaMonitor._filesRedundancy.label.text = 'Queued files ' + Math.round(avgRedundancy / r) + '% complete';
     siaMonitor._gbUsed.label.text = usedStorage.toFixed(2) + ' GB used';
   });
 }
