@@ -58,7 +58,7 @@ const PasswordDialog = new Lang.Class({
                      }, this._okButton]);
 
     /* Give entry field focus DOES NOT WORK */
-    global.stage.set_key_focus(this._passwdEntry);
+    //global.stage.set_key_focus(this._passwdEntry);
   },
 
   set_callback: function(callback) {

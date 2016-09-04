@@ -282,7 +282,7 @@ function sendSiacoins(address, siacoins) {
   let hastings = convertHastings(siacoins);
 
   /* Send Siacoins */
-  getJSON('POST', '/wallet/siacoins', 'amount=' + siacoins + '&destination=' + address, function(code, json) {
+  getJSON('POST', '/wallet/siacoins', 'amount=' + hastings + '&destination=' + address, function(code, json) {
     let result = JSON.parse(json);
     if (result === null) {
         showNotification('Failed to send. Wallet not responding.');
@@ -706,17 +706,21 @@ function showWalletUnlockedItems(unlocked) {
     siaMonitor._walletpending.actor.show();
     siaMonitor._walletsend.actor.show();
     siaMonitor._walletreceive.actor.show();
+    siaMonitor._allowance.actor.show();
     siaMonitor._filesSynced.actor.show();
     siaMonitor._filesRedundancy.actor.show();
     siaMonitor._gbUsed.actor.show();
+    siaMonitor._pausesync.actor.show();
   } else {
     siaMonitor._walletbalance.actor.hide();
     siaMonitor._walletpending.actor.hide();
     siaMonitor._walletsend.actor.hide();
     siaMonitor._walletreceive.actor.hide();
+    siaMonitor._allowance.actor.hide();
     siaMonitor._filesSynced.actor.hide();
     siaMonitor._filesRedundancy.actor.hide();
     siaMonitor._gbUsed.actor.hide();
+    siaMonitor._pausesync.actor.hide();
   }
   return;
 }
