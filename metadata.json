@@ -4,5 +4,5 @@
 	"uuid" 		    	: "sia@pmknutsen.github.com",
 	"name" 		    	: "Sia Cloud Storage",
 	"description"   	: "Automated backup to the Sia decentralized cloud storage network.",
-	"version"	    	: "0.5.1"
+	"version"	    	: "1.0.3"
 }
