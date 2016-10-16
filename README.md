@@ -1,6 +1,6 @@
 ##Sia Cloud Storage Extension for GNOME
 
-The Sia Cloud Storage extension integrates Sia directly into your GNOME desktop. Files in `~/Sia` are automatically synchronized with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible. Sia v.0.5.0 or newer is required.
+The Sia Cloud Storage extension integrates Sia in the GNOME desktop. Files in `~/Sia` are automatically synchronized with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible. Sia v.1.0.1 or newer is required.
 
 
 ###What is Sia?
@@ -12,7 +12,6 @@ Siacoins is the Sia network’s own currency, and are used to fund storage contr
 
 ###Features
 * Recursive synchronization of local folder (`~/Sia`)
-* File versioning
 * Unlock/lock wallet
 * View Siacoin balance and pending transfers
 * Send Siacoins
@@ -22,7 +21,7 @@ Siacoins is the Sia network’s own currency, and are used to fund storage contr
 * File icon emblems/overlays that indicate upload status
 
 ###Install
-Before you install, make sure you are running a recent version of Sia. This extension uses version numbers that match the latest version Sia which it has been tested for. Backward compatibility should be guaranteed after v0.5.0, but note that the extension is *no longer compatible with Sia v0.4.8 and older*.
+Before you install, make sure you are running a recent version of Sia. This extension uses version numbers that match the latest version Sia which it has been tested for. Backward compatibility should be guaranteed after v1.0.1 but note that the extension is *no longer compatible with any version older than 1.0.1*.
 
 Download and run the `install.sh` script, then restart your GNOME desktop with `Alt+F2` and `r`.
 
@@ -40,22 +39,30 @@ It is recommended that you also create a symbolic link in `/usr/bin` to your `si
 
 Restart your desktop with `Alt+F2` and 'r' to start the extension.
 
-
 ###Persistence
-Files are, by default, uploaded for a period of ~14 days (2,000 blocks). It is then renewed for another 14 days, and so on.
-If the file is deleted at any time, it can still be retrieved for up to 14 days through the UI wallet.
+File upload requires that you have already set an allowance through Sia. This can be done either through the graphical wallet (Sia-UI) or on the command line.
 
+####Set allowance in graphical wallet
+Run Sia-UI and unlock your wallet (on the Wallet page). Navigate to the Files pages and click Buy Storage. Follow the instructions and wait for the storage contract purchase to complete (this can take anywhere from a few to tens of minutes).
+
+####Set allowance on command line
+Navigate to the path of `siac` which is a command line tool supplied with Sia. Run:
+
+`siac renter setallowance [amount] [period]`
+
+`[amount]` is the amount of money that can be spent over a given period and the currency unit (e.g. `10KS` or `10000SC`)
+`[period]` is the period in weeks the contract should be valid for.
+
+Note that any amount of storage is not guaranteed when setting an allowance. You are merely reserving an amount to pay for storage and bandwidth you end up consuming on the Sia network. Any unused amount by the end of the contract is automatically refunded. Important to note is that your storage contract will also automatically renew at the end of `[period]` provided Sia is running, your wallet is unlocked and contains sufficient funds.
 
 ###Versioning
-Sia does not support versioning directly. This extension compares the size of uploaded files. If the filesize is changed
-(e.g. after editing the file) the old version is removed and replaced on the Sia cloud. A copy of the `.sia` file is stored as a
-hidden file in the same location as the file. You can therefore retrieve the previous version for up to 14 days (see **Persistence**).
+Versioning is currently not supported. Earlier versions of this extension supported versioning, but due to changes in the Sia API this feature is no longer available. Versioning will become available again when the API allows for it.
 
 
 ###Troubleshooting
 **"My files are not uploaded to the cloud"**
 
-Your wallet needs to be unlocked and funded in order for Sia to form new storage contracts with hosts. Restrictive firewalls may also prevent Sia from connecting to the cloud. If that is not the case and synchronization has indeed halted, try restarting the Sia daemon (`siac stop`).
+You need to form storage contracts with hosts before uploading files. See above. Restrictive firewalls may also prevent Sia from connecting to the cloud. If that is not the case and synchronization has indeed halted, try restarting the Sia daemon (`siac stop`) as a last resort.
 
 **"How do I backup files without moving them into the Sia folder?"**
 
@@ -68,7 +75,7 @@ As long as you create a symbolic link with `-s`, then removing these folders fro
 
 **"What are Siacoins and how to get them?"**
 
-Siacoins is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoins with bitcoins on an exchange, such as [Poloniex](http://poloniex.com). You can also request a small amount of free Siacoins from the faucet at [SiaPulse.com](http://siapulse.com/page/faucet).
+Siacoin is the Sia network’s own currency, and is used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoins with bitcoins on an exchange, such as [Poloniex](http://poloniex.com). You can also request a small amount of free Siacoins from the faucet at [SiaPulse.com](http://siapulse.com/page/faucet).
 
 **"Sia does not automatically start"**
 
@@ -79,11 +86,6 @@ To enable auto-start of the Sia daemon, the program `siad` needs to be in your p
 The extension may not be compatible with your version of GNOME. Please file an issue with details of your distribution and desktop versions. To aid troubleshooting include a copy of any error messages and warnings. You can view these error message by restarting the GNOME desktop in a terminal:
 
 `gnome-shell --replace --display=:0.0 &`
-
-
-**"Where are old versions of my files?"**
-
-See **Versioning**.
 
 **"Synchronization has stalled"**
 
