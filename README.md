@@ -1,16 +1,16 @@
-##Sia Cloud Storage Extension for GNOME
+## Sia Cloud Storage Extension for GNOME
 
 The Sia Cloud Storage extension integrates Sia in the GNOME desktop. Files in `~/Sia` are automatically synchronized with the Sia cloud. Files are re-uploaded when they expire or file-sizes change. The extension automatically starts the Sia daemon when possible. Sia v.1.0.1 or newer is required.
 
 
-###What is Sia?
+### What is Sia?
 Sia is a blockchain-based decentralized cloud storage platform that allows users all over the world to contribute available storage space from their computers to form a decentralized network. Using Sia, you can rent storage from hosts on the network. This is accomplished via "smart" storage contracts stored on the Sia blockchain. Hosts are paid for storing files, once the host has kept a file for an agreed amount of time.
 
 Siacoins is the Sia network’s own currency, and are used to fund storage contracts. You can earn Siacoins by sharing unused storage space on your computer, or you can buy Siacoin on an exchange.
 
 ![Sia GNOME Extension](./img/screenshot-2.png)   ![Sia GNOME Extension](./img/screenshot.png)
 
-###Features
+### Features
 * Recursive synchronization of local folder (`~/Sia`)
 * Unlock/lock wallet
 * View Siacoin balance and pending transfers
@@ -20,7 +20,7 @@ Siacoins is the Sia network’s own currency, and are used to fund storage contr
 * Sync and upload statistics
 * File icon emblems/overlays that indicate upload status
 
-###Install
+### Install
 Before you install, make sure you are running a recent version of Sia. This extension uses version numbers that match the latest version Sia which it has been tested for. Backward compatibility should be guaranteed after v1.0.1 but note that the extension is *no longer compatible with any version older than 1.0.1*.
 
 Download and run the `install.sh` script, then restart your GNOME desktop with `Alt+F2` and `r`.
@@ -39,13 +39,13 @@ It is recommended that you also create a symbolic link in `/usr/bin` to your `si
 
 Restart your desktop with `Alt+F2` and 'r' to start the extension.
 
-###Persistence
+### Persistence
 File upload requires that you have already set an allowance through Sia. This can be done either through the graphical wallet (Sia-UI) or on the command line.
 
-####Set allowance in graphical wallet
+#### Set allowance in graphical wallet
 Run Sia-UI and unlock your wallet (on the Wallet page). Navigate to the Files pages and click Buy Storage. Follow the instructions and wait for the storage contract purchase to complete (this can take anywhere from a few to tens of minutes).
 
-####Set allowance on command line
+#### Set allowance on command line
 Navigate to the path of `siac` which is a command line tool supplied with Sia. Run:
 
 `siac renter setallowance [amount] [period]`
@@ -55,11 +55,11 @@ Navigate to the path of `siac` which is a command line tool supplied with Sia. R
 
 Note that any amount of storage is not guaranteed when setting an allowance. You are merely reserving an amount to pay for storage and bandwidth you end up consuming on the Sia network. Any unused amount by the end of the contract is automatically refunded. Important to note is that your storage contract will also automatically renew at the end of `[period]` provided Sia is running, your wallet is unlocked and contains sufficient funds.
 
-###Versioning
+### Versioning
 Versioning is currently not supported. Earlier versions of this extension supported versioning, but due to changes in the Sia API this feature is no longer available. Versioning will become available again when the API allows for it.
 
 
-###Troubleshooting
+### Troubleshooting
 **"My files are not uploaded to the cloud"**
 
 You need to form storage contracts with hosts before uploading files. See above. Restrictive firewalls may also prevent Sia from connecting to the cloud. If that is not the case and synchronization has indeed halted, try restarting the Sia daemon (`siac stop`) as a last resort.
@@ -92,7 +92,7 @@ The extension may not be compatible with your version of GNOME. Please file an i
 This might happen if the file is temporarily not available, such as might happend if you are backing up an external drive and unmounting it for periods of time. In order to maintain the integrity of files on the network, Sia requires that the file is always available. You should only be synchronizing folders and files that are available whenever Sia is running on your computer.
 
 
-###License
+### License
 **The MIT License (MIT)**
 
 *Copyright (c) 2016 Per Knutsen*
